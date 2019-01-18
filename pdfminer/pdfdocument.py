@@ -39,25 +39,32 @@ from .utils import decode_text
 
 log = logging.getLogger(__name__)
 
+
 ##  Exceptions
 ##
 class PDFNoValidXRef(PDFSyntaxError):
     pass
 
+
 class PDFNoOutlines(PDFException):
     pass
+
 
 class PDFDestinationNotFound(PDFException):
     pass
 
+
 class PDFEncryptionError(PDFException):
     pass
+
 
 class PDFPasswordIncorrect(PDFEncryptionError):
     pass
 
+
 class PDFTextExtractionNotAllowed(PDFEncryptionError):
     pass
+
 
 # some predefined literals and keywords.
 LITERAL_OBJSTM = LIT('ObjStm')
@@ -559,7 +566,7 @@ class PDFDocument(object):
             pos = self.find_xref(parser)
             self.read_xref_from(parser, pos, self.xrefs)
         except PDFNoValidXRef:
-            pass # fallback = True
+            pass  # fallback = True
         if fallback:
             parser.fallback = True
             xref = PDFXRefFallback()
@@ -571,7 +578,7 @@ class PDFDocument(object):
                 continue
             # If there's an encryption info, remember it.
             if 'Encrypt' in trailer:
-                #assert not self.encryption, str(self.encryption)
+                # assert not self.encryption, str(self.encryption)
                 self.encryption = (list_value(trailer['ID']),
                                    dict_value(trailer['Encrypt']))
                 self._initialize_password(password)
@@ -587,7 +594,7 @@ class PDFDocument(object):
             if settings.STRICT:
                 raise PDFSyntaxError('Catalog not found!')
         return
-    
+
     KEYWORD_OBJ = KWD(b'obj')
 
     # _initialize_password(password=b'')
@@ -605,7 +612,7 @@ class PDFDocument(object):
         self.is_printable = handler.is_printable()
         self.is_modifiable = handler.is_modifiable()
         self.is_extractable = handler.is_extractable()
-        self._parser.fallback = False # need to read streams with exact length
+        self._parser.fallback = False  # need to read streams with exact length
         return
 
     def _getobj_objstm(self, stream, index, objid):
@@ -615,7 +622,7 @@ class PDFDocument(object):
             (objs, n) = self._get_objects(stream)
             if self.caching:
                 self._parsed_objs[stream.objid] = (objs, n)
-        i = n*2+index
+        i = n * 2 + index
         try:
             obj = objs[i]
         except IndexError:
@@ -650,8 +657,8 @@ class PDFDocument(object):
         (_, kwd) = self._parser.nexttoken()
         # #### hack around malformed pdf files
         # copied from https://github.com/jaepil/pdfminer3k/blob/master/pdfminer/pdfparser.py#L399
-        #to solve https://github.com/pdfminer/pdfminer.six/issues/56
-        #assert objid1 == objid, str((objid1, objid))
+        # to solve https://github.com/pdfminer/pdfminer.six/issues/56
+        # assert objid1 == objid, str((objid1, objid))
         if objid1 != objid:
             x = []
             while kwd is not self.KEYWORD_OBJ:
@@ -718,7 +725,7 @@ class PDFDocument(object):
                     se = entry.get('SE')
                     yield (level, title, dest, action, se)
             if 'First' in entry and 'Last' in entry:
-                for x in search(entry['First'], level+1):
+                for x in search(entry['First'], level + 1):
                     yield x
             if 'Next' in entry:
                 for x in search(entry['Next'], level):
@@ -784,7 +791,7 @@ class PDFDocument(object):
 
     # read xref table
     def read_xref_from(self, parser, start, xrefs):
-        """Reads XRefs from the given location."""
+        """Read XRefs from the given location."""
         parser.seek(start)
         parser.reset()
         try:

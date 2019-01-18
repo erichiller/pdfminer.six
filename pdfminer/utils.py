@@ -5,32 +5,41 @@ Miscellaneous Routines.
 import struct
 # from sys import maxint as INF #doesn't work anymore under Python3,
 # but PDF still uses 32 bits ints
-INF = (1<<31) - 1
+INF = (1 << 31) - 1
 
-import six  #Python 2+3 compatibility
+from typing import Tuple, Union
+
+import six  # Python 2+3 compatibility
 
 if six.PY3:
     import chardet  # For str encoding detection in Py3
     unicode = str
 
-def make_compat_bytes(in_str):
-    "In Py2, does nothing. In Py3, converts to bytes, encoding to unicode."
+
+# Typedef for BBox, bounding box
+BBox = Tuple[float, float, float, float]  # Tuple of x0, y0, x1, y1
+
+
+def make_compat_bytes(in_str: str):
+    """ In Py2, does nothing. In Py3, converts to bytes, encoding to unicode. """
     assert isinstance(in_str, str), str(type(in_str))
     if six.PY2:
         return in_str
     else:
         return in_str.encode()
 
-def make_compat_str(in_str):
-    "In Py2, does nothing. In Py3, converts to string, guessing encoding."
+
+def make_compat_str(in_str: Union[bytes, str, unicode]):
+    """ In Py2, does nothing. In Py3, converts to string, guessing encoding."""
     assert isinstance(in_str, (bytes, str, unicode)), str(type(in_str))
     if six.PY3 and isinstance(in_str, bytes):
         enc = chardet.detect(in_str)
         in_str = in_str.decode(enc['encoding'])
     return in_str
 
-def compatible_encode_method(bytesorstring, encoding='utf-8', erraction='ignore'):
-    "When Py2 str.encode is called, it often means bytes.encode in Py3. This does either."
+
+def compatible_encode_method(bytesorstring: Union[bytes, str], encoding='utf-8', erraction='ignore'):
+    """ When Py2 str.encode is called, it often means bytes.encode in Py3. This does either. """
     if six.PY2:
         assert isinstance(bytesorstring, (str, unicode)), str(type(bytesorstring))
         return bytesorstring.encode(encoding, erraction)
@@ -38,6 +47,7 @@ def compatible_encode_method(bytesorstring, encoding='utf-8', erraction='ignore'
         if isinstance(bytesorstring, str): return bytesorstring
         assert isinstance(bytesorstring, bytes), str(type(bytesorstring))
         return bytesorstring.decode(encoding, erraction)
+
 
 ##  PNG Predictor
 ##
@@ -50,12 +60,12 @@ def apply_png_predictor(pred, colors, columns, bitspercomponent, data):
     i = 0
     buf = b''
     line0 = b'\x00' * columns
-    for i in range(0, len(data), nbytes+1):
+    for i in range(0, len(data), nbytes + 1):
         ft = data[i]
         if six.PY2:
             ft = six.byte2int(ft)
         i += 1
-        line1 = data[i:i+nbytes]
+        line1 = data[i:i + nbytes]
         line2 = b''
         if ft == 0:
             # PNG none
@@ -132,6 +142,7 @@ def apply_matrix_norm(m, v):
 # isnumber
 def isnumber(x):
     return isinstance(x, (six.integer_types, float))
+
 
 # uniq
 def uniq(objs):
@@ -276,7 +287,7 @@ def enc(x, codec='ascii'):
     return x
 
 
-def bbox2str(bbox):
+def bbox2str(bbox: BBox):
     (x0, y0, x1, y1) = bbox
     return '%.3f,%.3f,%.3f,%.3f' % (x0, y0, x1, y1)
 
@@ -284,6 +295,7 @@ def bbox2str(bbox):
 def matrix2str(m):
     (a, b, c, d, e, f) = m
     return '[%.2f,%.2f,%.2f,%.2f, (%.2f,%.2f)]' % (a, b, c, d, e, f)
+
 
 def vecBetweenBoxes(obj1, obj2):
     """A distance function between two TextBoxes.
@@ -299,14 +311,15 @@ def vecBetweenBoxes(obj1, obj2):
     (x0, y0) = (min(obj1.x0, obj2.x0), min(obj1.y0, obj2.y0))
     (x1, y1) = (max(obj1.x1, obj2.x1), max(obj1.y1, obj2.y1))
     (ow, oh) = (x1-x0, y1-y0)
-    (iw, ih) = (ow-obj1.width-obj2.width, oh-obj1.height-obj2.height)
-    if iw<0 and ih<0:
+    (iw, ih) = (ow - obj1.width - obj2.width, oh - obj1.height - obj2.height)
+    if iw < 0 and ih < 0:
         # if one is inside another we compute euclidean distance
         (xc1, yc1) = ( (obj1.x0+obj1.x1)/2, (obj1.y0+obj1.y1)/2 )
         (xc2, yc2) = ( (obj2.x0+obj2.x1)/2, (obj2.y0+obj2.y1)/2 )
         return (xc1-xc2, yc1-yc2)
     else:
         return (max(0, iw), max(0, ih))
+
 
 ##  Plane
 ##
@@ -390,8 +403,8 @@ class Plane(object):
                 if obj in done:
                     continue
                 done.add(obj)
-                if (obj.x1 <= x0 or x1 <= obj.x0 or
-                    obj.y1 <= y0 or y1 <= obj.y0):
+                if ( obj.x1 <= x0 or x1 <= obj.x0 or
+                     obj.y1 <= y0 or y1 <= obj.y0 ):
                     continue
                 yield obj
         return

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Fork of PDFMiner using six for Python 2+3 compatibility
+Fork of PDFMiner using six for Python 2+3 compatibility. EDH edits
 
 PDFMiner is a tool for extracting information from PDF documents.
 Unlike other PDF-related tools, it focuses entirely on getting and analyzing
@@ -10,7 +10,8 @@ It includes a PDF converter that can transform PDF files into other text
 formats (such as HTML). It has an extensible PDF parser that can be used for
 other purposes instead of text analysis.
 """
-__version__ = '20181108'
+__version__ = '20181108editEDH'
 
 if __name__ == '__main__':
     print(__version__)
+

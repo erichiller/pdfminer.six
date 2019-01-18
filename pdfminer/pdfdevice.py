@@ -3,8 +3,10 @@
 import six
 
 from .pdffont import PDFUnicodeNotDefined
+from typing import Union
 
 from . import utils
+from io import IOBase
 
 ##  PDFDevice
 ##
@@ -27,7 +29,7 @@ class PDFDevice(object):
     def close(self):
         return
 
-    def set_ctm(self, ctm):
+    def set_ctm(self, ctm: 'PDFDevice'):
         self.ctm = ctm
         return
 
@@ -37,7 +39,7 @@ class PDFDevice(object):
     def end_tag(self):
         return
 
-    def do_tag(self, tag, props=None):
+    def do_tag(self, tag, props = None):
         return
 
     def begin_page(self, page, ctm):
@@ -94,7 +96,7 @@ class PDFTextDevice(PDFDevice):
         needcharspace = False
         for obj in seq:
             if utils.isnumber(obj):
-                x -= obj*dxscale
+                x -= obj * dxscale
                 needcharspace = True
             else:
                 for cid in font.decode(obj):
@@ -115,7 +117,7 @@ class PDFTextDevice(PDFDevice):
         needcharspace = False
         for obj in seq:
             if utils.isnumber(obj):
-                y -= obj*dxscale
+                y -= obj * dxscale
                 needcharspace = True
             else:
                 for cid in font.decode(obj):
@@ -137,7 +139,7 @@ class PDFTextDevice(PDFDevice):
 ##
 class TagExtractor(PDFDevice):
 
-    def __init__(self, rsrcmgr, outfp, codec='utf-8'):
+    def __init__(self, rsrcmgr: 'PDFResourceManager', outfp: IOBase, codec='utf-8'):
         PDFDevice.__init__(self, rsrcmgr)
         self.outfp = outfp
         self.codec = codec

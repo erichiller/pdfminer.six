@@ -30,18 +30,22 @@ from .pdfcolor import PREDEFINED_COLORSPACE
 from .utils import choplist
 from .utils import mult_matrix
 from .utils import MATRIX_IDENTITY
+from .pdfpage import PDFPage
 
 import six  # Python 2+3 compatibility
 
 log = logging.getLogger(__name__)
+
 
 ##  Exceptions
 ##
 class PDFResourceError(PDFException):
     pass
 
+
 class PDFInterpreterError(PDFException):
     pass
+
 
 ##  Constants
 ##
@@ -50,6 +54,7 @@ LITERAL_TEXT = LIT('Text')
 LITERAL_FONT = LIT('Font')
 LITERAL_FORM = LIT('Form')
 LITERAL_IMAGE = LIT('Image')
+
 
 ##  PDFTextState
 ##
@@ -306,7 +311,7 @@ class PDFContentParser(PSStackParser):
                 if len(objs) % 2 != 0:
                     raise PSTypeError('Invalid dictionary construct: %r' % objs)
                 d = dict((literal_name(k), v) for (k, v) in choplist(2, objs))
-                (pos, data) = self.get_inline_data(pos+len(b'ID '))
+                (pos, data) = self.get_inline_data(pos + len(b'ID '))
                 obj = PDFStream(d, data)
                 self.push((pos, obj))
                 self.push((pos, self.KEYWORD_EI))
@@ -322,7 +327,11 @@ class PDFContentParser(PSStackParser):
 ##
 class PDFPageInterpreter(object):
 
-    def __init__(self, rsrcmgr, device):
+    rsrcmgr: PDFResourceManager
+    device: 'PDFLayoutAnalyzer'  # type: ignore
+
+
+    def __init__(self, rsrcmgr: PDFResourceManager, device: 'PDFLayoutAnalyzer'):   # type: ignore
         self.rsrcmgr = rsrcmgr
         self.device = device
         return
@@ -351,6 +360,7 @@ class PDFPageInterpreter(object):
                 return PDFColorSpace(name, len(list_value(spec[1])))
             else:
                 return PREDEFINED_COLORSPACE.get(name)
+
         for (k, v) in six.iteritems(dict_value(resources)):
             log.debug('Resource: %r: %r', k, v)
             if k == 'Font':
@@ -837,7 +847,7 @@ class PDFPageInterpreter(object):
             pass
         return
 
-    def process_page(self, page):
+    def process_page(self, page: PDFPage) -> None:
         log.info('Processing page: %r', page)
         (x0, y0, x1, y1) = page.mediabox
         if page.rotate == 90:
@@ -851,12 +861,13 @@ class PDFPageInterpreter(object):
         self.device.begin_page(page, ctm)
         self.render_contents(page.resources, page.contents, ctm=ctm)
         self.device.end_page(page)
+        page.layout = self.device.cur_item
         return
 
     # render_contents(resources, streams, ctm)
     #   Render the content streams.
     #   This method may be called recursively.
-    def render_contents(self, resources, streams, ctm=MATRIX_IDENTITY):
+    def render_contents(self, resources, streams, ctm=MATRIX_IDENTITY) -> None:
         log.info('render_contents: resources=%r, streams=%r, ctm=%r',
                  resources, streams, ctm)
         self.init_resources(resources)
@@ -864,7 +875,7 @@ class PDFPageInterpreter(object):
         self.execute(list_value(streams))
         return
 
-    def execute(self, streams):
+    def execute(self, streams) -> None:
         try:
             parser = PDFContentParser(streams)
         except PSEOF:
@@ -880,7 +891,7 @@ class PDFPageInterpreter(object):
                 method = 'do_%s' % name.replace('*', '_a').replace('"', '_w').replace("'", '_q')
                 if hasattr(self, method):
                     func = getattr(self, method)
-                    nargs = six.get_function_code(func).co_argcount-1
+                    nargs = six.get_function_code(func).co_argcount - 1
                     if nargs:
                         args = self.pop(nargs)
                         log.debug('exec: %s %r', name, args)

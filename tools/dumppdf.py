@@ -164,9 +164,12 @@ def dumpoutline(outfp, fname, objids, pagenos, password='',
     fp.close()
     return
 
+
 # extractembedded
 LITERAL_FILESPEC = LIT('Filespec')
 LITERAL_EMBEDDEDFILE = LIT('EmbeddedFile')
+
+
 def extractembedded(outfp, fname, objids, pagenos, password='',
                     dumpall=False, codec=None, extractdir=None):
     def extract1(obj):
@@ -201,6 +204,7 @@ def extractembedded(outfp, fname, objids, pagenos, password='',
     fp.close()
     return
 
+
 # dumppdf
 def dumppdf(outfp, fname, objids, pagenos, password='',
             dumpall=False, codec=None, extractdir=None):
@@ -212,7 +216,7 @@ def dumppdf(outfp, fname, objids, pagenos, password='',
             obj = doc.getobj(objid)
             dumpxml(outfp, obj, codec=codec)
     if pagenos:
-        for (pageno,page) in enumerate(PDFPage.create_pages(doc)):
+        for (pageno, page) in enumerate(PDFPage.create_pages(doc)):
             if pageno in pagenos:
                 if codec:
                     for obj in page.contents:
@@ -234,7 +238,7 @@ def dumppdf(outfp, fname, objids, pagenos, password='',
 def main(argv):
     import getopt
     def usage():
-        print ('usage: %s [-d] [-a] [-p pageid] [-P password] [-r|-b|-t] [-T] [-E directory] [-i objid] file ...' % argv[0])
+        print('usage: %s [-d] [-a] [-p pageid] [-P password] [-r|-b|-t] [-T] [-E directory] [-i objid] file ...' % argv[0])
         return 100
     try:
         (opts, args) = getopt.getopt(argv[1:], 'dap:P:rbtTE:i:o:')
